@@ -33,7 +33,7 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:5173');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadFile(join(__dirname, 'dist', 'index.html'));
+    mainWindow.loadFile(join(__dirname, 'client', 'dist', 'index.html'));
   }
 
   mainWindow.on('closed', () => {
