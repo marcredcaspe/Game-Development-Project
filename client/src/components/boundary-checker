@@ -1,0 +1,42 @@
+AFRAME.registerComponent('boundary-checker', {
+    schema: {
+        maxRadius: { type: 'number', default: 25 }
+    },
+
+    init: function() {
+        // Initialize a working vector for calculations
+        this.boundaryCheckVector = new THREE.Vector3();
+        console.log('[Boundary Checker] Initialized with max radius:', this.data.maxRadius);
+    },
+
+    tick: function() {
+        // Get the current position directly from the entity's Three.js object
+        const pos = this.el.object3D.position;
+        const maxRadius = this.data.maxRadius;
+        
+        // Copy the current position for calculation
+        this.boundaryCheckVector.copy(pos);
+        this.boundaryCheckVector.y = 0; // Ignore height (Y-axis) for boundary check
+        
+        const distance = this.boundaryCheckVector.length();
+
+        if (distance > maxRadius) {
+            // Player is outside the boundary.
+            
+            // 1. Normalize the vector (get a vector pointing 1 unit away from center)
+            const direction = this.boundaryCheckVector.normalize();
+            
+            // 2. Clamp the position: Scale the vector back to the maxRadius length
+            const clampedX = direction.x * maxRadius;
+            const clampedZ = direction.z * maxRadius;
+
+            // 3. Apply the new clamped position, maintaining the current height (pos.y)
+            this.el.setAttribute('position', {
+                x: clampedX,
+                y: pos.y, 
+                z: clampedZ
+            });
+        }
+        // If distance <= maxRadius, we do nothing and let the movement proceed normally.
+    }
+});

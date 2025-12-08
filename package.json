@@ -2,8 +2,7 @@
   "name": "campfire-scene",
   "version": "1.0.0",
   "description": "A campfire camping scene game with Electron, A-Frame, and Three.js",
-  "main": "main.js",
-  "type": "module",
+  "main": "electron.js",
   "scripts": {
     "start": "electron .",
     "dev": "concurrently \"cd client && npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
