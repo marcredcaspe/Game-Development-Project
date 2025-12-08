@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Campfire Scene - A-Frame</title>
+    <link rel="stylesheet" href="./style.css">
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script>
         // Fire Light Component - Handles flickering animation and shadows
@@ -580,6 +581,8 @@ AFRAME.registerComponent('ui-popup', {
             <img id="grassAO" src="/textures/grass/ambientOcclusion.jpg">
             <img id="grassNormal" src="/textures/grass/normal.jpg">
             <img id="grassRoughness" src="/textures/grass/roughness.jpg">
+            <!-- Wolf model (place wolf.glb at client/public/wolf_model/wolf.glb) -->
+            <a-asset-item id="wolfAsset" src="./wolf_model/wolf.glb"></a-asset-item>
         </a-assets>
 
         <!-- Camera with movement controls -->
@@ -764,6 +767,9 @@ AFRAME.registerComponent('ui-popup', {
         <!-- Mountains as boundaries -->
         <a-entity id="mountains" mountain-boundary=""></a-entity>
 
+        <!-- Wolf entity controlled by GLTF loader component -->
+        <a-entity id="wolf" position="-8 0 -6" wolf-controller="src: ./wolf_model/scene.gltf; interval: 300000; appearDur: 1000"></a-entity>
+
         <!-- UI Popup for sitting -->
         <a-entity 
             id="sitPopup"
@@ -811,6 +817,79 @@ AFRAME.registerComponent('ui-popup', {
         </a-entity>
     </a-scene>
 
-    <script src="./aframe-components.js"></script>
+        <script src="./script.js" type="module"></script>
+        <script type="module">
+            import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
+
+            AFRAME.registerComponent('wolf-controller', {
+                schema: {
+                    src: { type: 'string', default: './wolf_model/scene.gltf' },
+                    interval: { type: 'int', default: 300000 }, // 5 minutes
+                    appearDur: { type: 'int', default: 1000 }
+                },
+
+                init: function () {
+                    this.visible = true;  // Start visible
+                    this.model = null;
+                    this.el.setAttribute('visible', true);
+
+                    const loader = new GLTFLoader();
+                    const src = this.data.src;
+
+                    console.log('[Wolf] Loading model from:', src);
+
+                    loader.load(src, (gltf) => {
+                        console.log('[Wolf] Model loaded successfully!', gltf);
+                        this.model = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+                        if (!this.model) {
+                            console.error('[Wolf] No scene found in model');
+                            return;
+                        }
+
+                        this.model.traverse((node) => {
+                            if (node.isMesh) {
+                                node.castShadow = true;
+                                node.receiveShadow = true;
+                            }
+                        });
+
+                        // Add model to entity and start visible (scale 1)
+                        this.model.scale.set(1, 1, 1);
+                        this.el.object3D.add(this.model);
+                        this.el.setAttribute('scale', '1 1 1');
+                        this.el.setAttribute('visible', true);
+                        console.log('[Wolf] Model added to scene');
+                    }, (progress) => {
+                        console.log('[Wolf] Loading progress:', Math.round((progress.loaded / progress.total) * 100) + '%');
+                    }, (err) => {
+                        console.error('[Wolf] Failed to load model:', err);
+                    });
+
+                    this.toggle = this.toggle.bind(this);
+                    this.intervalId = setInterval(this.toggle, this.data.interval);
+                    console.log('[Wolf] Toggle interval set to', this.data.interval, 'ms');
+                },
+
+                toggle: function () {
+                    const dur = this.data.appearDur;
+
+                    if (!this.visible) {
+                        this.el.setAttribute('visible', true);
+                        this.el.setAttribute('animation__scale', `property: scale; to: 1 1 1; dur: ${dur}; easing: easeOutCubic`);
+                        this.visible = true;
+                    } else {
+                        this.el.setAttribute('animation__scale', `property: scale; to: 0 0 0; dur: ${dur}; easing: easeInCubic`);
+                        setTimeout(() => {
+                            this.el.setAttribute('visible', false);
+                        }, dur);
+                        this.visible = false;
+                    }
+                },
+
+                remove: function () {
+                    clearInterval(this.intervalId);
+                }
+            });
+        </script>
 </body>
 </html>
