@@ -1,4 +1,4 @@
-import './style.css';
+import '../style.css';
 
 import './components/chase-detector.js';
 import './components/fire-light.js';
@@ -15,6 +15,11 @@ import './components/boundary-checker.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // We only initialize the backend service here after the main app structure is loaded
-    initApiService();
-    console.log("A-Frame Components Registered and API Service Initialized.");
+    // Import stubbed API service to avoid runtime reference errors. Implementation lives in services/apiService.js
+    import('./services/apiService.js').then(({ initApiService }) => {
+        initApiService();
+        console.log("A-Frame Components Registered and API Service Initialized.");
+    }).catch((err) => {
+        console.warn('Failed to initialize API service (stub missing):', err);
+    });
 });

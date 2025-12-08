@@ -1,7 +1,7 @@
 AFRAME.registerComponent('wolf-controller', {
     schema: {
         // Updated to the correct GLTF path
-        src: { type: 'string', default: './wolf_model/scene.gltf' }, 
+        src: { type: 'string', default: 'wolf_model/scene.gltf' }, 
         speed: { type: 'number', default: 1.5 },
         roamRadius: { type: 'number', default: 20 },
         detectionRange: { type: 'number', default: 8 },

@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Campsite</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+    <link rel="stylesheet" href="./style.css">
 </head>
 <body>
     <a-scene 
@@ -49,17 +50,18 @@
         </a-entity>
 
         <a-entity 
-            id="wolf" 
-            position="-12 0 -10" 
-            wolf-controller="
-                src: ./wolf_model/scene.gltf; speed: 1.5;
-                roamRadius: 22;
-                detectionRange: 8;
-                wanderInterval: 8000;
-                chaseSpeed: 2.5
-            "
-            shadow="cast: true"
-        ></a-entity>
+    id="wolf" 
+    position="-12 0 -10" 
+    wolf-controller="
+        src: #wolfAsset;
+        speed: 1.5;
+        roamRadius: 22;
+        detectionRange: 8;
+        wanderInterval: 8000;
+        chaseSpeed: 2.5
+    "
+    shadow="cast: true"
+></a-entity>
 
         <!-- Ground -->
         <a-plane 
@@ -232,21 +234,6 @@
 
         <!-- Mountains as boundaries -->
         <a-entity id="mountains" mountain-boundary=""></a-entity>
-
-        <!-- Wolf entity with roaming behavior -->
-        <a-entity 
-            id="wolf" 
-            position="-12 0 -10" 
-            wolf-controller="
-                src: ./wolf_model/wolf.glb;
-                speed: 1.5;
-                roamRadius: 22;
-                detectionRange: 8;
-                wanderInterval: 8000;
-                chaseSpeed: 2.5
-            "
-            shadow="cast: true"
-        ></a-entity>
 
         <!-- UI Popup for sitting -->
         <a-entity 
