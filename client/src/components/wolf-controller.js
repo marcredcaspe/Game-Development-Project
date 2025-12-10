@@ -1,7 +1,7 @@
 AFRAME.registerComponent('wolf-controller', {
     schema: {
-        // Updated to the correct GLTF path
-        src: { type: 'string', default: 'wolf_model/scene.gltf' }, 
+        // We set the default to empty so it forces you to provide the path in HTML
+        src: { type: 'string', default: '' }, 
         speed: { type: 'number', default: 1.5 },
         roamRadius: { type: 'number', default: 20 },
         detectionRange: { type: 'number', default: 8 },
@@ -11,54 +11,45 @@ AFRAME.registerComponent('wolf-controller', {
 
     init: function () {
         this.model = null;
+        this.mixer = null; // For animations
         this.destination = new THREE.Vector3();
         this.isChasing = false;
         this.player = document.querySelector('#rig');
         this.wanderTimer = 0;
         
-        // THREE.GLTFLoader handles both GLB and GLTF formats correctly.
+        // Use the src from the HTML attribute, or fallback if needed
+        const modelUrl = this.data.src || '/wolf_model/wolf.glb';
+        
         const loader = new THREE.GLTFLoader();
-        console.log('[Wolf] Loading model from:', this.data.src);
+        console.log('🐺 [Wolf] Loading model from:', modelUrl);
 
-        loader.load(this.data.src, (gltf) => {
-            console.log('[Wolf] Model loaded successfully!');
-            this.model = gltf.scene || (gltf.scenes && gltf.scenes[0]);
+        loader.load(modelUrl, (gltf) => {
+            console.log('🐺 [Wolf] Model loaded successfully!');
+            const model = gltf.scene || gltf.scenes[0];
             
-            if (!this.model) {
-                console.error('[Wolf] No scene found in model');
+            if (!model) {
+                console.error('❌ [Wolf] No scene found in model');
                 return;
             }
 
-            // Configure shadows
-            this.model.traverse((node) => {
-                if (node.isMesh) {
-                    node.castShadow = true;
-                    node.receiveShadow = true;
-                    // Adjust materials if needed
-                    if (node.material) {
-                        node.material.metalness = 0.1;
-                        node.material.roughness = 0.8;
-                    }
-                }
-            });
+            // Find where 'model' is defined, then add this:
+            model.scale.set(0.8, 0.8, 0.8); // X, Y, Z
 
-            // Scale and position the wolf
-            this.model.scale.set(0.8, 0.8, 0.8);
-            this.el.object3D.add(this.model);
+            this.model = model;
+            this.el.setObject3D('mesh', this.model);
+
+            // --- ANIMATION SETUP ---
+            if (gltf.animations && gltf.animations.length > 0) {
+                this.mixer = new THREE.AnimationMixer(this.model);
+                const action = this.mixer.clipAction(gltf.animations[0]); // Play first animation found
+                action.play();
+                console.log('🎬 [Wolf] Playing animation:', gltf.animations[0].name);
+            }
             
-            // Set initial destination
             this.setRandomDestination();
-            
-            console.log('[Wolf] Model added to scene with roaming behavior');
 
         }, undefined, (err) => {
-            console.error('[Wolf] Failed to load model:', err);
-        });
-
-        // Add click event for debugging
-        this.el.addEventListener('click', () => {
-            console.log('Wolf clicked! Position:', this.el.getAttribute('position'));
-            this.setRandomDestination();
+            console.error('❌ [Wolf] Failed to load model:', err);
         });
     },
 
@@ -69,25 +60,14 @@ AFRAME.registerComponent('wolf-controller', {
         
         this.destination.set(
             currentPos.x + Math.cos(angle) * distance,
-            0, // Keep on ground level
+            0,
             currentPos.z + Math.sin(angle) * distance
         );
         
-        // Ensure destination is within boundaries
+        // Simple Boundary Check
         const boundaryRadius = 26;
-        const distFromCenter = Math.sqrt(this.destination.x * this.destination.x + this.destination.z * this.destination.z);
-        if (distFromCenter > boundaryRadius) {
-            // Scale back to boundary
-            const scale = boundaryRadius / distFromCenter;
-            this.destination.multiplyScalar(scale);
-        }
-        
-        // Avoid going too close to camp
-        const campPos = new THREE.Vector3(0, 0, -6);
-        if (this.destination.distanceTo(campPos) < 10) {
-            // Move destination away from camp
-            const direction = this.destination.clone().sub(campPos).normalize();
-            this.destination.copy(campPos).add(direction.multiplyScalar(10));
+        if (this.destination.length() > boundaryRadius) {
+            this.destination.setLength(boundaryRadius);
         }
         
         this.wanderTimer = 0;
@@ -95,83 +75,62 @@ AFRAME.registerComponent('wolf-controller', {
 
     updateMovement: function(timeDelta) {
         if (!this.model || !this.player) return;
+
+        // Update Animation (Walk cycle)
+        if (this.mixer) {
+            this.mixer.update(timeDelta / 1000);
+        }
         
         const currentPos = this.el.object3D.position;
         const playerPos = this.player.object3D.position;
         const distanceToPlayer = currentPos.distanceTo(playerPos);
         
-        // Check if player is within detection range
         this.isChasing = distanceToPlayer < this.data.detectionRange;
         
+        let target = this.destination;
+        let speed = this.data.speed;
+
         if (this.isChasing) {
-            // Chase the player
-            this.destination.copy(playerPos);
-            
-            // Move toward player
-            const direction = new THREE.Vector3()
-                .subVectors(playerPos, currentPos)
-                .normalize();
-            
-            const speed = this.data.chaseSpeed * (timeDelta / 1000);
-            currentPos.add(direction.multiplyScalar(speed));
-            
-            // Rotate wolf to face player
-            if (this.model) {
-                const angle = Math.atan2(direction.x, direction.z);
-                this.model.rotation.y = angle;
-            }
-            
+            target = playerPos;
+            speed = this.data.chaseSpeed;
         } else {
-            // Normal wandering behavior
             this.wanderTimer += timeDelta;
-            
-            // Set new random destination periodically
             if (this.wanderTimer >= this.data.wanderInterval) {
                 this.setRandomDestination();
             }
-            
-            // Move toward destination
-            const direction = new THREE.Vector3()
-                .subVectors(this.destination, currentPos)
-                .normalize();
-            
-            const distanceToDest = currentPos.distanceTo(this.destination);
-            const speed = this.data.speed * (timeDelta / 1000);
-            
-            if (distanceToDest > 0.5) {
-                currentPos.add(direction.multiplyScalar(speed));
-                
-                // Rotate wolf to face movement direction
-                if (this.model) {
-                    const angle = Math.atan2(direction.x, direction.z);
-                    this.model.rotation.y = angle;
-                }
-            } else {
-                // Reached destination, get new one
-                this.setRandomDestination();
-            }
         }
-        
-        // Update A-Frame position
+
+        // Move Logic
+        const direction = new THREE.Vector3()
+            .subVectors(target, currentPos);
+            
+        // Ignore Y difference (don't fly up to player's head)
+        direction.y = 0; 
+        direction.normalize();
+
+        // Stop jittering when close
+        if (currentPos.distanceTo(target) > 0.5) {
+            const moveStep = direction.multiplyScalar(speed * (timeDelta / 1000));
+            currentPos.add(moveStep);
+
+            // Rotation (Face the direction)
+            const angle = Math.atan2(direction.x, direction.z);
+            this.model.rotation.y = angle;
+        } else if (!this.isChasing) {
+            this.setRandomDestination();
+        }
+
+        // Apply Position
         this.el.setAttribute('position', {
             x: currentPos.x,
-            y: currentPos.y,
+            y: 0, // Force ground level
             z: currentPos.z
         });
-        
-        // Make wolf look slightly downward for more natural appearance
-        if (this.model) {
-            this.model.rotation.x = -0.1;
-        }
     },
 
     tick: function(time, timeDelta) {
         if (timeDelta) {
             this.updateMovement(timeDelta);
         }
-    },
-
-    remove: function() {
-        // Cleanup if needed
     }
 });

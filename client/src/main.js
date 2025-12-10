@@ -16,7 +16,7 @@ import './components/boundary-checker.js';
 document.addEventListener('DOMContentLoaded', () => {
     // We only initialize the backend service here after the main app structure is loaded
     // Import stubbed API service to avoid runtime reference errors. Implementation lives in services/apiService.js
-    import('./services/apiService.js').then(({ initApiService }) => {
+    import('./services/apiServices.js').then(({ initApiService }) => {
         initApiService();
         console.log("A-Frame Components Registered and API Service Initialized.");
     }).catch((err) => {
