@@ -1,0 +1,36 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background-color: #0a0a0a;
+    font-family: Arial, sans-serif;
+}
+
+a-scene {
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Hide A-Frame UI elements if needed */
+.a-enter-vr-button {
+    display: none;
+}
+
+.chase-warning {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 0, 0, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    z-index: 10000;
+    display: none;
+    border: 2px solid red;
+}
