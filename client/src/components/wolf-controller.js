@@ -17,6 +17,9 @@ AFRAME.registerComponent('wolf-controller', {
         this.player = document.querySelector('#rig');
         this.wanderTimer = 0;
         
+        // Chase detection with hysteresis to prevent flickering
+        this.chaseHysteresis = 1.5; // Stop chasing at 1.5x the detection range
+        
         // Use the src from the HTML attribute, or fallback if needed
         const modelUrl = this.data.src || '/wolf_model/wolf.glb';
         
@@ -33,7 +36,7 @@ AFRAME.registerComponent('wolf-controller', {
             }
 
             // Find where 'model' is defined, then add this:
-            model.scale.set(0.8, 0.8, 0.8); // X, Y, Z
+            model.scale.set(0.03, 0.03, 0.03); // X, Y, Z
 
             this.model = model;
             this.el.setObject3D('mesh', this.model);
@@ -56,19 +59,23 @@ AFRAME.registerComponent('wolf-controller', {
     setRandomDestination: function() {
         const currentPos = this.el.object3D.position;
         const angle = Math.random() * Math.PI * 2;
-        const distance = 5 + Math.random() * (this.data.roamRadius - 5);
+        const distance = 3 + Math.random() * (this.data.roamRadius - 3);
         
-        this.destination.set(
-            currentPos.x + Math.cos(angle) * distance,
-            0,
-            currentPos.z + Math.sin(angle) * distance
-        );
+        let newX = currentPos.x + Math.cos(angle) * distance;
+        let newZ = currentPos.z + Math.sin(angle) * distance;
         
-        // Simple Boundary Check
-        const boundaryRadius = 26;
-        if (this.destination.length() > boundaryRadius) {
-            this.destination.setLength(boundaryRadius);
+        // Enforce boundary BEFORE setting destination
+        const boundaryRadius = 25;
+        const distFromOrigin = Math.sqrt(newX * newX + newZ * newZ);
+        
+        if (distFromOrigin > boundaryRadius) {
+            const scale = boundaryRadius / distFromOrigin;
+            newX *= scale;
+            newZ *= scale;
         }
+        
+        this.destination.set(newX, 0, newZ);
+        console.log('🐺 [Wolf] New destination:', this.destination);
         
         this.wanderTimer = 0;
     },
@@ -85,7 +92,20 @@ AFRAME.registerComponent('wolf-controller', {
         const playerPos = this.player.object3D.position;
         const distanceToPlayer = currentPos.distanceTo(playerPos);
         
-        this.isChasing = distanceToPlayer < this.data.detectionRange;
+        // Chase detection with hysteresis - prevents flickering at boundaries
+        if (this.isChasing) {
+            // If chasing, continue until player is further away (1.5x detection range)
+            if (distanceToPlayer > this.data.detectionRange * this.chaseHysteresis) {
+                this.isChasing = false;
+                console.log('🐺 [Wolf] Lost the player, resuming wander');
+            }
+        } else {
+            // If not chasing, start chasing when player enters detection range
+            if (distanceToPlayer < this.data.detectionRange) {
+                this.isChasing = true;
+                console.log('🐺 [Wolf] Detected player! Starting chase');
+            }
+        }
         
         let target = this.destination;
         let speed = this.data.speed;
@@ -105,12 +125,17 @@ AFRAME.registerComponent('wolf-controller', {
             .subVectors(target, currentPos);
             
         // Ignore Y difference (don't fly up to player's head)
-        direction.y = 0; 
-        direction.normalize();
-
-        // Stop jittering when close
-        if (currentPos.distanceTo(target) > 0.5) {
-            const moveStep = direction.multiplyScalar(speed * (timeDelta / 1000));
+        direction.y = 0;
+        
+        const directionLength = direction.length();
+        
+        // Stop jittering when close (reduced threshold for smaller model)
+        if (directionLength > 0.3) {
+            // Normalize for direction calculation
+            direction.normalize();
+            
+            // Apply movement: direction is normalized, multiply by speed and delta time
+            const moveStep = direction.clone().multiplyScalar(speed * (timeDelta / 1000));
             currentPos.add(moveStep);
 
             // Rotation (Face the direction)

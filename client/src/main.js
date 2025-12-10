@@ -5,6 +5,7 @@ import './components/fire-light.js';
 import './components/flashlight.js';
 import './components/log-chair.js';
 import './components/mountain-boundary.js';
+import './components/player-death.js';
 import './components/proximity-detector.js';
 import './components/stamina.js';
 import './components/tree-generator.js';

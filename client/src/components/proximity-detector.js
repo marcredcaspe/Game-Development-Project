@@ -1,23 +1,28 @@
-// Boundary Checker Component - Prevents movement beyond a certain radius
-AFRAME.registerComponent('boundary-checker', {
+// Proximity Detector Component - Detects when an entity is near a target
+AFRAME.registerComponent('proximity-detector', {
     schema: {
-        maxRadius: { type: 'number', default: 25 }
+        distance: { type: 'number', default: 2 },
+        target: { type: 'selector', default: '#rig' }
     },
     
     init: function() {
-        this.lastValidPosition = this.el.getAttribute('position');
+        this.isNear = false;
     },
     
     tick: function() {
-        const pos = this.el.getAttribute('position');
-        const distance = Math.sqrt(pos.x * pos.x + pos.z * pos.z);
+        if (!this.data.target) return;
         
-        if (distance > this.data.maxRadius) {
-            // Move back to last valid position
-            this.el.setAttribute('position', this.lastValidPosition);
+        const pos = this.el.object3D.position;
+        const targetPos = this.data.target.object3D.position;
+        const distance = pos.distanceTo(targetPos);
+        
+        this.isNear = distance < this.data.distance;
+        
+        // Emit event for other components to listen to
+        if (this.isNear) {
+            this.el.emit('proximity-enter', { target: this.data.target });
         } else {
-            // Update last valid position
-            this.lastValidPosition = { x: pos.x, y: pos.y, z: pos.z };
+            this.el.emit('proximity-exit', { target: this.data.target });
         }
     }
 });

@@ -6,6 +6,7 @@ AFRAME.registerComponent('chase-detector', {
     init: function() {
         this.wolfComp = null;
         this.warningEl = null;
+        this.isChasingActive = false;
         
         // Create warning element
         this.warningEl = document.createElement('div');
@@ -16,14 +17,23 @@ AFRAME.registerComponent('chase-detector', {
         // Get the wolf component reference
         this.el.sceneEl.addEventListener('loaded', () => {
             this.wolfComp = this.data.wolf.components['wolf-controller'];
+            console.log('🎯 [Chase Detector] Wolf component initialized');
         });
     },
 
     tick: function() {
-        if (this.wolfComp) {
-            if (this.wolfComp.isChasing) {
+        if (!this.wolfComp) return;
+        
+        const wasChasing = this.isChasingActive;
+        this.isChasingActive = this.wolfComp.isChasing;
+        
+        // Only update UI and effects when state changes to avoid performance issues
+        if (this.isChasingActive !== wasChasing) {
+            if (this.isChasingActive) {
+                console.log('🎯 [Chase Detector] WOLF IS CHASING!');
                 this.warningEl.style.display = 'block';
-                // Add heartbeat effect or other visual cues
+                this.warningEl.classList.add('pulse');
+                // Add heartbeat effect
                 this.el.sceneEl.camera.el.setAttribute('animation__shake', {
                     property: 'position',
                     dir: 'alternate',
@@ -33,7 +43,9 @@ AFRAME.registerComponent('chase-detector', {
                     loop: true
                 });
             } else {
+                console.log('🎯 [Chase Detector] Wolf stopped chasing');
                 this.warningEl.style.display = 'none';
+                this.warningEl.classList.remove('pulse');
                 this.el.sceneEl.camera.el.removeAttribute('animation__shake');
             }
         }
