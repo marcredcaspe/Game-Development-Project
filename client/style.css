@@ -1,0 +1,83 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    overflow: hidden;
+    background-color: #0a0a0a;
+    font-family: Arial, sans-serif;
+}
+
+a-scene {
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Hide A-Frame UI elements if needed */
+.a-enter-vr-button {
+    display: none;
+}
+
+.chase-warning {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(255, 0, 0, 0.3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-family: Arial, sans-serif;
+    z-index: 10000;
+    display: none;
+    border: 2px solid red;
+}
+
+.death-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10001;
+}
+
+.death-content {
+    text-align: center;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+
+.death-content h1 {
+    font-size: 4rem;
+    color: #ff0000;
+    margin-bottom: 20px;
+    text-shadow: 0 0 10px #ff0000;
+    animation: pulse 1s infinite;
+}
+
+.death-content p {
+    font-size: 1.5rem;
+    margin: 10px 0;
+}
+
+#respawn-countdown {
+    font-size: 1.2rem;
+    color: #ffaa00;
+    margin-top: 20px;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.5;
+    }
+}
