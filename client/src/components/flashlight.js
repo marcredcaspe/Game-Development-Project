@@ -3,7 +3,7 @@ AFRAME.registerComponent('flashlight', {
         toggleKey: { type: 'string', default: 'f' },
         initialOn: { type: 'boolean', default: false },
         offIntensity: { type: 'number', default: 0.0 },
-        onIntensity: { type: 'number', default: 3.0 } // Matches the intensity in index.html
+        onIntensity: { type: 'number', default: 5.0 } // Enhanced visibility
     },
 
     init: function () {

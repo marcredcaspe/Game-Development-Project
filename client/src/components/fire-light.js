@@ -32,7 +32,7 @@ AFRAME.registerComponent('fire-light', {
                         light.shadow.mapSize.width = 512;
                         light.shadow.mapSize.height = 512;
                         light.shadow.camera.near = 0.1;
-                        light.shadow.camera.far = 8;
+                        light.shadow.camera.far = 20;
                     } else if (this.el.id === 'fireLight2') {
                         light.shadow.mapSize.width = 256;
                         light.shadow.mapSize.height = 256;
