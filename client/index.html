@@ -33,8 +33,8 @@
     </div>
 
     <a-scene 
-        fog="type: linear; color: #0a0a0a; near: 1; far: 15"
-        background="color: #0a0a0a"
+        fog="type: linear; color: #0a0a14; near: 5; far: 40"
+        background="color: #050508"
         shadow="type: pcfsoft"
     >
         <a-assets>
@@ -44,13 +44,17 @@
 
         <a-entity game-manager="killDistance: 3.5; winDistance: 6.0"></a-entity>
 
+        <!-- Scene Lighting -->
+        <a-light type="ambient" color="#445566" intensity="0.15"></a-light>
+        <a-light type="directional" color="#778899" intensity="0.05" position="-10 20 10"></a-light>
+
         <a-entity id="rig" 
             wasd-controls="acceleration: 50"
             position="0 0 50" 
             boundary-checker="maxRadius: 60"
         >
             <a-entity camera look-controls="pointerLockEnabled: true" position="0 1.6 0">
-                <a-light type="spot" color="#fff" intensity="3" angle="30" penumbra="0.5" position="0 0 -0.5" flashlight></a-light>
+                <a-light type="spot" color="#ffffff" intensity="8" angle="45" penumbra="0.3" distance="25" position="0 0 -0.5" flashlight></a-light>
             </a-entity>
         </a-entity>
 
@@ -69,7 +73,7 @@
 
         <a-entity id="camp" position="0 0 -50">
             <a-cone color="#8B4513" radius-bottom="2.5" height="2" position="0 1 0"></a-cone>
-            <a-light type="point" color="#ff7700" intensity="2" distance="15" position="0 2 0" fire-light></a-light>
+            <a-light type="point" color="#ff7700" intensity="2.5" distance="18" position="0 2 0" fire-light></a-light>
             <a-entity log-chair position="2 0 1"></a-entity>
             <a-entity log-chair position="-2 0 1"></a-entity>
         </a-entity>

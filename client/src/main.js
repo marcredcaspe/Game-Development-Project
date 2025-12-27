@@ -8,7 +8,6 @@ import './components/tree-generator.js';
 import './components/flashlight.js';
 import './components/game-manager.js';
 import './components/fire-light.js';
-import './components/log-chair.js';
 import './components/mountain-boundary.js';
 
 document.addEventListener('DOMContentLoaded', () => {
