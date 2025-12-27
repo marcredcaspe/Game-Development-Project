@@ -6,8 +6,8 @@ AFRAME.registerComponent('mountain-boundary', {
     
     generateMountains: function() {
         const mountainMaterial = { color: '#4a4a4a', roughness: 0.95, metalness: 0.05 };
-        const boundaryRadius = 28; // Distance from center
-        const numWalls = 60; // Number of wall segments around the perimeter
+        const boundaryRadius = 58; // was 28
+        const numWalls = 80; // optional: smoother ring
         
         for (let i = 0; i < numWalls; i++) {
             const angle1 = (i / numWalls) * Math.PI * 2;
@@ -44,7 +44,7 @@ AFRAME.registerComponent('mountain-boundary', {
         // Add some additional wall segments for more coverage
         for (let i = 0; i < 20; i++) {
             const angle = Math.random() * Math.PI * 2;
-            const radius = 26 + Math.random() * 2; // 26-28 units from center
+            const radius = 56 + Math.random() * 2; // was 26-28
             const x = Math.cos(angle) * radius;
             const z = Math.sin(angle) * radius;
             
