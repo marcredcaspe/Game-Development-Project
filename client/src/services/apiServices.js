@@ -1,48 +1,47 @@
-// client/src/services/apiServices.js
+const API_URL = 'http://localhost:5000/api'; // Ensure this matches your server port
 
-// 1. Define your backend URL (Adjust port if your server runs on 5000 or 8080)
-const API_URL = 'http://localhost:3000/api';
+export const initApiService = () => console.log('📡 API Online');
 
-/**
- * Initializes the API service.
- * This is called from main.js when the game loads.
- */
-export const initApiService = () => {
-    console.log('📡 API Service is online and ready.');
-};
-
-/**
- * Saves the player's run time to the database.
- * Call this when the player reaches the Campsite.
- */
-export const saveRun = async (playerName, timeTaken) => {
+export const login = async (username, password) => {
     try {
-        const response = await fetch(`${API_URL}/win`, {
+        const res = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ playerName, timeTaken })
+            body: JSON.stringify({ username, password })
         });
-
-        if (!response.ok) throw new Error('Server error');
-        
-        const data = await response.json();
-        console.log('✅ Score saved!', data);
-        return data;
-    } catch (error) {
-        console.error('❌ Failed to save score:', error);
-    }
+        const data = await res.json();
+        if (res.ok) {
+            localStorage.setItem('token', data.token); // Save token for Auto-Login
+            return data;
+        } else {
+            return { msg: data.msg || 'Login failed' };
+        }
+    } catch (e) { return { msg: 'Server error' }; }
 };
 
-/**
- * Gets the top scores for the leaderboard.
- */
-export const getLeaderboard = async () => {
+export const register = async (username, password) => {
     try {
-        const response = await fetch(`${API_URL}/leaderboard`);
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.warn('⚠️ Could not fetch leaderboard. Backend might be offline.');
-        return [];
-    }
+        const res = await fetch(`${API_URL}/register`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        return await res.json();
+    } catch (e) { return { msg: 'Server error' }; }
+};
+
+export const saveRun = async (timeInMinutes) => {
+    try {
+        const token = localStorage.getItem('token');
+        await fetch(`${API_URL}/score`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'x-auth-token': token },
+            body: JSON.stringify({ timeInMinutes })
+        });
+    } catch (e) { console.error(e); }
+};
+
+export const logout = () => {
+    localStorage.removeItem('token');
+    location.reload();
 };

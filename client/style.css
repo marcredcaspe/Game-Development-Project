@@ -81,3 +81,122 @@ a-scene {
         opacity: 0.5;
     }
 }
+
+/* UI Overlays (needed so popups appear above the A-Frame canvas) */
+.popup {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  color: white;
+  pointer-events: auto;
+}
+
+.popup h1 { font-size: 3rem; margin-bottom: 20px; text-transform: uppercase; }
+
+.popup button {
+  margin: 10px;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  background: #c0392b;
+  color: white;
+  border: none;
+  font-family: monospace;
+}
+
+.popup button:hover { background: #e74c3c; }
+
+.popup p {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+}
+
+/* Login overlay must be fixed and above canvas */
+#login-screen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.95);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box {
+  text-align: center;
+  color: white;
+  font-family: monospace;
+}
+
+.login-box h1 {
+  font-size: 2.5rem;
+  margin-bottom: 30px;
+  color: #ff6b6b;
+  text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+.login-box input {
+  display: block;
+  margin: 15px auto;
+  padding: 12px;
+  width: 250px;
+  font-size: 1rem;
+  border: 2px solid #555;
+  background: #222;
+  color: white;
+  font-family: monospace;
+}
+
+.login-box button {
+  margin: 10px 5px;
+  padding: 12px 25px;
+  font-size: 1rem;
+  cursor: pointer;
+  background: #c0392b;
+  color: white;
+  border: none;
+  font-family: monospace;
+}
+
+.login-box button:hover { background: #e74c3c; }
+
+#auth-message {
+  color: #ff6b6b;
+  margin-top: 15px;
+  font-size: 0.9rem;
+}
+
+.popup button {
+  margin: 10px;
+  padding: 15px 30px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  background: #c0392b;
+  color: white;
+  border: none;
+  font-family: monospace;
+}
+
+.popup button:hover { background: #e74c3c; }
+
+/* Login overlay must also be above canvas */
+#login-screen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: black;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-box { text-align: center; color: white; }
+.login-box input { display: block; margin: 10px auto; padding: 10px; width: 200px; }
