@@ -1,4 +1,5 @@
-const API_URL = 'http://localhost:5000/api'; // Ensure this matches your server port
+// Change from process.env to import.meta.env for Vite
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export const initApiService = () => console.log('📡 API Online');
 
