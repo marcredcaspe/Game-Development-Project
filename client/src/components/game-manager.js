@@ -83,15 +83,6 @@ AFRAME.registerComponent('game-manager', {
             }
         });
         
-        // Debug: Log when win sound is ready
-        this.winSound.addEventListener('canplaythrough', () => {
-            console.log('Win sound ready to play');
-        });
-        
-        this.winSound.addEventListener('error', (e) => {
-            console.error('Error loading win sound:', e);
-            console.log('Make sure ./sounds/win.mp3 exists in your project');
-        });
     },
 
     startTimer: function() {
