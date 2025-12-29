@@ -74,7 +74,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Server error', error: err.message });
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 // Listen on all network interfaces (required for Railway)
 app.listen(PORT, '0.0.0.0', () => {
