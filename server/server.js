@@ -8,78 +8,78 @@ const app = express();
 // Connect Database
 connectDB();
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Init Middleware
+app.use(express.json({ extended: false }));
 
-// CORS Configuration
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://ite18-final-project-frontend.vercel.app',
-    'https://ite18-final-project-frontend-production.up.railway.app'
-  ],
+// CORS Configuration - Works for both localhost and production
+const allowedOrigins = [
+  'http://localhost:5173',    // Vite dev server
+  'http://localhost:3000',    // Create React App dev server
+  'http://localhost:8080',    // Alternative port
+  process.env.FRONTEND_URL    // Production Vercel URL
+].filter(Boolean); // Remove undefined values
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      console.log('Blocked by CORS:', origin);
+      return callback(new Error('Not allowed by CORS'), false);
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+  optionsSuccessStatus: 200
+};
 
-// Handle preflight requests
-app.options('*', cors());
+app.use(cors(corsOptions));
 
-// Health check endpoint - CRITICAL FOR RAILWAY
-app.get('/health', (req, res) => {
-  console.log('Health check called');
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime()
-  });
+// Logging middleware to see requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} from ${req.headers.origin || 'no origin'}`);
+  next();
 });
 
-// Root endpoint
+// Basic health check route
 app.get('/', (req, res) => {
   res.json({
-    message: 'Game Server API',
-    version: '1.0.0',
-    status: 'running'
+    message: 'Backend API is running',
+    environment: process.env.NODE_ENV || 'development',
+    frontend_url: process.env.FRONTEND_URL || 'localhost',
+    timestamp: new Date().toISOString()
   });
 });
 
-// Import routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/game', require('./routes/gameRoutes'));
+// Define Routes
+app.use('/api', require('./routes/authRoutes'));
+app.use('/api', require('./routes/gameRoutes'));
 
 // 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'Route not found' });
 });
 
-// Error handler
+// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('Error:', err.stack);
-  res.status(500).json({ error: 'Internal server error' });
+  console.error('Server error:', err.message);
+  if (err.message === 'Not allowed by CORS') {
+    return res.status(403).json({ 
+      message: 'CORS error',
+      allowedOrigins: allowedOrigins 
+    });
+  }
+  res.status(500).json({ message: 'Server error', error: err.message });
 });
 
 const PORT = process.env.PORT || 5000;
 
-// Start server with proper Railway configuration
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`🌐 Access at: http://0.0.0.0:${PORT}`);
-  console.log(`❤️  Health check: http://0.0.0.0:${PORT}/health`);
-});
-
-// Railway-specific server settings
-server.keepAliveTimeout = 120000; // 2 minutes
-server.headersTimeout = 120000; // 2 minutes
-
-// Graceful shutdown for Railway
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
-  });
+// Listen on all network interfaces (required for Railway)
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server started on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:5173'}`);
+    console.log(`CORS Allowed Origins:`, allowedOrigins);
 });
