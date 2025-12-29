@@ -256,7 +256,7 @@ AFRAME.registerComponent('tree-generator', {
             bush.setAttribute('material', bushMaterial);
             bush.setAttribute('shadow', 'cast: true; receive: true');
             this.el.appendChild(bush);
-<<<<<<< HEAD
+
         }
     }
 });
@@ -545,8 +545,8 @@ AFRAME.registerSystem('simple-physics', {
         const index = this.colliders.indexOf(component);
         if (index > -1) {
             this.colliders.splice(index, 1);
-=======
->>>>>>> a643f10cec9b2b9fcb465cb04c49cbe2eb7b5e02
+
+
         }
     }
 });
