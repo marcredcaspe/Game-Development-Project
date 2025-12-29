@@ -1,10 +1,10 @@
 [build]
 builder = "nixpacks"
+buildCommand = "npm install"
 
 [deploy]
-startCommand = "npm start"  
+startCommand = "npm start"
 
 [service]
 public = true
 port = 5000
-
