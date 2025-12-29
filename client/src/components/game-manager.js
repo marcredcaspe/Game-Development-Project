@@ -50,20 +50,20 @@ AFRAME.registerComponent('game-manager', {
     createAudioElements: function() {
         // Create wolf howl sound with loop
         this.howlSound = new Audio();
-        this.howlSound.src = './sounds/wolf_howl.mp3';
+        this.howlSound.src = '/sounds/wolf_howl.mp3';
         this.howlSound.volume = 0.4; // Lower volume for looping background
         this.howlSound.loop = true; // Enable looping
         this.howlSound.preload = 'auto';
         
         // Create death sound
         this.deathSound = new Audio();
-        this.deathSound.src = './sounds/man_death.mp3';
+        this.deathSound.src = '/sounds/man_death.mp3';
         this.deathSound.volume = 0.8;
         this.deathSound.preload = 'auto';
         
         // Create win sound - SIMPLE VERSION
         this.winSound = new Audio();
-        this.winSound.src = './sounds/win.mp3'; // Make sure this file exists in your sounds folder
+        this.winSound.src = '/sounds/win.mp3'; // Make sure this file exists in your sounds folder
         this.winSound.volume = 0.7; // Adjust volume as needed
         this.winSound.preload = 'auto';
         
