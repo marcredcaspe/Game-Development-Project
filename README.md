@@ -2,15 +2,15 @@
 
 ## 📖 Project Story
 
-Lost in the wilderness at nightfall, a lone adventurer must navigate through dangerous terrain filled with wolves and treacherous mountains. Your only goal: survive the night and make it back to your campfire. With just a flashlight to guide your way, every step could be your last. Will you find your way home, or will the darkness claim you?
+Lost in the wilderness at nightfall, a lone adventurer must navigate through dangerous terrain filled with a vicious wolf and treacherous mountains. Your only goal: survive the night and make it back to your campfire. With just a flashlight to guide your way, every step could be your last. Will you find your way home, or will the darkness claim you?
 
 ## 💡 Concept
 
-**Back to Camp** is an immersive 3D survival game that combines atmospheric horror elements with strategic gameplay. Players must navigate through a procedurally generated forest environment while avoiding hostile wolves and staying within the mountain boundaries. The game features realistic lighting effects, including a dynamic campfire and player-controlled flashlight, creating a tense and engaging survival experience.
+**Back to Camp** is an immersive 3D survival game that combines atmospheric horror elements with strategic gameplay. Players must navigate through a procedurally generated forest environment while avoiding the hostile wolf and staying within the mountain boundaries. The game features realistic lighting effects, including a dynamic campfire and player-controlled flashlight, creating a tense and engaging survival experience.
 
 ### Key Features:
 - 🌲 **Procedurally Generated Environment**: Each playthrough features dynamically placed trees and obstacles
-- 🐺 **Wolf AI**: Intelligent wolf enemies that patrol and hunt the player
+- 🐺 **Wolf AI**: Intelligent wolf enemy that patrol and hunt the player
 - 🔦 **Dynamic Lighting**: Realistic flashlight mechanics and campfire illumination
 - ⛰️ **Boundary System**: Mountain barriers that define the playable area
 - 🎮 **Survival Mechanics**: Strategic gameplay requiring careful navigation and resource management
