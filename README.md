@@ -22,8 +22,8 @@ Lost in the wilderness at nightfall, a lone adventurer must navigate through dan
 ### Frontend
 - **Three.js** - 3D graphics rendering and scene management
 - **Vite** - Fast build tool and development server
-- **HTML5/CSS3** - UI structure and styling
-- **JavaScript (ES6+)** - Client-side game logic
+- **HTML/CSS** - UI structure and styling
+- **JavaScript** - Client-side game logic
 
 ### Backend
 - **Node.js** - Server runtime environment
@@ -48,6 +48,7 @@ Lost in the wilderness at nightfall, a lone adventurer must navigate through dan
 - npm or yarn package manager
 - MongoDB (local installation or cloud instance)
 - Git
+- Downloaded project file (codebase)
 
 ### Installation
 
@@ -66,80 +67,47 @@ Lost in the wilderness at nightfall, a lone adventurer must navigate through dan
    ```bash
    cd client
    npm install
-   cd ..
    ```
 
 4. **Install server dependencies**
    ```bash
    cd server
    npm install
-   cd ..
    ```
 
 5. **Configure environment variables**
    
-   Create a `.env` file in the `server` directory:
+   Create a `.env` file in the `server` directory and replace the name and password that was included in the submitted deliverables:
    ```env
-   PORT=3000
-   MONGODB_URI=mongodb://localhost:27017/backtocampgame
-   JWT_SECRET=your_jwt_secret_key_here
-   NODE_ENV=development
-   ```
-
-6. **Start MongoDB**
-   
-   Make sure MongoDB is running on your system:
-   ```bash
-   # For Linux/Mac with systemd
-   sudo systemctl start mongod
-   
-   # Or if using MongoDB directly
-   mongod
+   MONGO_URI=mongodb+srv://<name>:<password>@cluster0.hq6emk5.mongodb.net/gameDB
+   JWT_SECRET=myjwtsecret
+   FRONTEND_URL=http://localhost:5173
    ```
 
 ### Running the Application
+6. **Add two terminals to run both the client and the server concurrently**
 
-#### Development Mode (Recommended)
-
-Run both client and server concurrently:
+One terminal for server:
 ```bash
-npm run dev
-```
-
-This will start:
-- Client development server on `http://localhost:5173`
-- Backend API server on `http://localhost:5173`
-
-#### Individual Services
-
-**Client only:**
-```bash
-npm run client:dev
-```
-
-**Server only:**
-```bash
-npm run server:dev
-```
-
-#### Production Build
-
-1. Build the client:
-   ```bash
-   npm run build
-   ```
-
-2. Start the production server:
-   ```bash
+   cd server
    npm start
-   ```
+```
+
+If there is an error regarding cors, type this and then type `npm start` again:
+```bash
+   npm install cors
+```
+it should now say that the server is now starting on the specific port.
+
+One terminal for client:
+```bash
+   cd client
+   npm run dev
+```
 
 ### Access the Game
 
-Open your browser and navigate to:
-```
-http://localhost:5173
-```
+After running npm run dev in the client it should automatically open a new tab in your browser, if not, click the `local` link displayed in the terminal.
 
 ## 👥 Team Roles
 
@@ -181,27 +149,74 @@ http://localhost:5173
 
 ```
 Game-Development-Project/
-├── client/               # Frontend application
-│   ├── public/          # Static assets
-│   │   ├── textures/   # Game textures
-│   │   └── wolf_model/ # 3D models
-│   └── src/
-│       ├── components/  # Game components
-│       └── services/    # API communication
-├── server/              # Backend application
-│   ├── config/         # Database configuration
-│   ├── controllers/    # Request handlers
-│   ├── models/         # Database schemas
-│   └── routes/         # API endpoints
-└── package.json        # Root dependencies
+├── .gitignore
+├── README.md
+├── .vercel/                    # Vercel deployment configuration
+│   ├── README.txt
+│   └── project.json
+│
+├── client/                     # Frontend (Vite + Three.js)
+│   ├── index.html              # Entry HTML file
+│   ├── package.json            # Frontend dependencies
+│   ├── package-lock.json
+│   ├── vite.config.js          # Vite build configuration
+│   ├── style.css               # Global styles
+│   ├── public/                 # Static assets (textures, models)
+│   │   ├── textures/
+│   │   │   └── grass/          # Grass PBR textures
+│   │   │       ├── ambientOcclusion.jpg
+│   │   │       ├── color.jpg
+│   │   │       ├── normal.jpg
+│   │   │       └── roughness.jpg
+│   │   └── wolf_model/
+│   │       └── wolf.glb        # 3D Wolf Model
+│   ├── sounds/                 # Audio files
+│   │   ├── man_death.mp3
+│   │   ├── win.mp3
+│   │   └── wolf_howl.mp3
+│   └── src/                    # Source code
+│       ├── main.js             # Main entry point for the game logic
+│       ├── style.css           # Component-level styles
+│       ├── components/         # Game components/Logic
+│       │   ├── boundary-checker.js
+│       │   ├── fire-light.js
+│       │   ├── flashlight.js
+│       │   ├── game-manager.js
+│       │   ├── mountain-boundary.js
+│       │   ├── tree-generator.js
+│       │   └── wolf-controller.js
+│       └── services/           # API integration
+│           └── apiServices.js
+│
+├── server/                     # Backend (Node.js + Express)
+│   ├── package.json            # Backend dependencies
+│   ├── package-lock.json
+│   ├── railway.toml            # Railway deployment config
+│   ├── server.js               # Main server entry point
+│   ├── config/
+│   │   └── db.js               # Database connection setup
+│   ├── controllers/            # Logic for handling requests
+│   │   ├── authController.js
+│   │   └── gameController.js
+│   ├── models/                 # Mongoose/Database models
+│   │   ├── Score.js
+│   │   └── user.js
+│   └── routes/                 # API Route definitions
+│       ├── authRoutes.js
+│       └── gameRoutes.js
+│
+└── dist/                       # Production Build Output (Auto-generated)
+    ├── index.html
+    ├── assets/
+    │   ├── index-[hash].css
+    │   └── index-[hash].js
+    └── textures/               # Copied assets in build
+        └── grass/ ...
 ```
 
 ## 🤝 Contributing
 
-This project was developed as a collaborative game development project. For contributions or questions, please reach out to the team members.
+This project was developed as a collaborative game development project. For questions, please reach out to the team members.
 
-
-
-This project is developed for educational purposes.
 
 
