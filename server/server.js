@@ -62,7 +62,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 5000;
 
 // Start server with proper Railway configuration
 const server = app.listen(PORT, '0.0.0.0', () => {
