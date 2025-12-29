@@ -6,4 +6,10 @@ startCommand = "npm start"
 
 [service]
 public = true
-port = 5000  
+port = 5000
+
+[variables]
+MONGO_URI=mongodb+srv://dbUser:admin1234@cluster0.hq6emk5.mongodb.net/gameDB
+JWT_SECRET=myjwtsecret
+FRONTEND_URL=http://localhost:5173
+
