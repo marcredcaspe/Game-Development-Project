@@ -201,7 +201,7 @@ AFRAME.registerComponent('tree-generator', {
         // Add some undergrowth/bushes
         this.addUndergrowth();
         
-        // Dispatch event when trees are done generating - MOVED TO HERE
+        // Dispatch event when trees are done generating
         setTimeout(() => {
             this.el.sceneEl.emit('trees-generated');
             console.log('Trees generated event dispatched');
@@ -256,120 +256,123 @@ AFRAME.registerComponent('tree-generator', {
             bush.setAttribute('material', bushMaterial);
             bush.setAttribute('shadow', 'cast: true; receive: true');
             this.el.appendChild(bush);
-
         }
     }
 });
 
 // Collision Body Component for simple collision detection
-AFRAME.registerComponent('collision-body', {
-    schema: {
-        type: { type: 'string', default: 'box' },
-        radius: { type: 'number', default: 0.5 },
-        height: { type: 'number', default: 1 },
-        width: { type: 'number', default: 1 },
-        depth: { type: 'number', default: 1 },
-        offset: { type: 'vec3', default: { x: 0, y: 0, z: 0 } }
-    },
-    
-    init: function() {
-        this.collisionArea = new THREE.Box3();
-        this.helper = null;
+// Check if component already exists before registering
+if (!AFRAME.components['collision-body']) {
+    AFRAME.registerComponent('collision-body', {
+        schema: {
+            type: { type: 'string', default: 'box' },
+            radius: { type: 'number', default: 0.5 },
+            height: { type: 'number', default: 1 },
+            width: { type: 'number', default: 1 },
+            depth: { type: 'number', default: 1 },
+            offset: { type: 'vec3', default: { x: 0, y: 0, z: 0 } }
+        },
         
-        // Create visual helper for debugging
-        if (this.el.sceneEl.hasAttribute('debug')) {
-            this.createDebugHelper();
+        init: function() {
+            this.collisionArea = new THREE.Box3();
+            this.helper = null;
+            
+            // Create visual helper for debugging
+            if (this.el.sceneEl.hasAttribute('debug')) {
+                this.createDebugHelper();
+            }
+        },
+        
+        createDebugHelper: function() {
+            const data = this.data;
+            if (data.type === 'cylinder') {
+                this.helper = document.createElement('a-cylinder');
+                this.helper.setAttribute('radius', data.radius);
+                this.helper.setAttribute('height', data.height);
+                this.helper.setAttribute('position', data.offset);
+                this.helper.setAttribute('material', 'color: red; opacity: 0.3; transparent: true');
+                this.helper.setAttribute('visible', 'true');
+                this.el.appendChild(this.helper);
+            } else if (data.type === 'box') {
+                this.helper = document.createElement('a-box');
+                this.helper.setAttribute('width', data.width);
+                this.helper.setAttribute('height', data.height);
+                this.helper.setAttribute('depth', data.depth);
+                this.helper.setAttribute('position', data.offset);
+                this.helper.setAttribute('material', 'color: red; opacity: 0.3; transparent: true');
+                this.helper.setAttribute('visible', 'true');
+                this.el.appendChild(this.helper);
+            }
+        },
+        
+        update: function() {
+            this.updateCollisionBounds();
+        },
+        
+        updateCollisionBounds: function() {
+            const worldPosition = new THREE.Vector3();
+            const worldScale = new THREE.Vector3();
+            
+            this.el.object3D.getWorldPosition(worldPosition);
+            this.el.object3D.getWorldScale(worldScale);
+            
+            const data = this.data;
+            
+            if (data.type === 'cylinder') {
+                const radius = data.radius * Math.max(worldScale.x, worldScale.z);
+                const height = data.height * worldScale.y;
+                
+                const min = new THREE.Vector3(
+                    worldPosition.x - radius + data.offset.x,
+                    worldPosition.y + data.offset.y - height/2,
+                    worldPosition.z - radius + data.offset.z
+                );
+                
+                const max = new THREE.Vector3(
+                    worldPosition.x + radius + data.offset.x,
+                    worldPosition.y + data.offset.y + height/2,
+                    worldPosition.z + radius + data.offset.z
+                );
+                
+                this.collisionArea.set(min, max);
+            } else {
+                const halfWidth = (data.width * worldScale.x) / 2;
+                const halfHeight = (data.height * worldScale.y) / 2;
+                const halfDepth = (data.depth * worldScale.z) / 2;
+                
+                const min = new THREE.Vector3(
+                    worldPosition.x - halfWidth + data.offset.x,
+                    worldPosition.y - halfHeight + data.offset.y,
+                    worldPosition.z - halfDepth + data.offset.z
+                );
+                
+                const max = new THREE.Vector3(
+                    worldPosition.x + halfWidth + data.offset.x,
+                    worldPosition.y + halfHeight + data.offset.y,
+                    worldPosition.z + halfDepth + data.offset.z
+                );
+                
+                this.collisionArea.set(min, max);
+            }
+        },
+        
+        tick: function() {
+            this.updateCollisionBounds();
+        },
+        
+        checkCollision: function(position, radius = 0.5) {
+            const playerBox = new THREE.Box3(
+                new THREE.Vector3(position.x - radius, position.y - 1, position.z - radius),
+                new THREE.Vector3(position.x + radius, position.y + 2, position.z + radius)
+            );
+            
+            return playerBox.intersectsBox(this.collisionArea);
         }
-    },
-    
-    createDebugHelper: function() {
-        const data = this.data;
-        if (data.type === 'cylinder') {
-            this.helper = document.createElement('a-cylinder');
-            this.helper.setAttribute('radius', data.radius);
-            this.helper.setAttribute('height', data.height);
-            this.helper.setAttribute('position', data.offset);
-            this.helper.setAttribute('material', 'color: red; opacity: 0.3; transparent: true');
-            this.helper.setAttribute('visible', 'true');
-            this.el.appendChild(this.helper);
-        } else if (data.type === 'box') {
-            this.helper = document.createElement('a-box');
-            this.helper.setAttribute('width', data.width);
-            this.helper.setAttribute('height', data.height);
-            this.helper.setAttribute('depth', data.depth);
-            this.helper.setAttribute('position', data.offset);
-            this.helper.setAttribute('material', 'color: red; opacity: 0.3; transparent: true');
-            this.helper.setAttribute('visible', 'true');
-            this.el.appendChild(this.helper);
-        }
-    },
-    
-    update: function() {
-        this.updateCollisionBounds();
-    },
-    
-    updateCollisionBounds: function() {
-        const worldPosition = new THREE.Vector3();
-        const worldScale = new THREE.Vector3();
-        
-        this.el.object3D.getWorldPosition(worldPosition);
-        this.el.object3D.getWorldScale(worldScale);
-        
-        const data = this.data;
-        
-        if (data.type === 'cylinder') {
-            const radius = data.radius * Math.max(worldScale.x, worldScale.z);
-            const height = data.height * worldScale.y;
-            
-            const min = new THREE.Vector3(
-                worldPosition.x - radius + data.offset.x,
-                worldPosition.y + data.offset.y - height/2,
-                worldPosition.z - radius + data.offset.z
-            );
-            
-            const max = new THREE.Vector3(
-                worldPosition.x + radius + data.offset.x,
-                worldPosition.y + data.offset.y + height/2,
-                worldPosition.z + radius + data.offset.z
-            );
-            
-            this.collisionArea.set(min, max);
-        } else {
-            const halfWidth = (data.width * worldScale.x) / 2;
-            const halfHeight = (data.height * worldScale.y) / 2;
-            const halfDepth = (data.depth * worldScale.z) / 2;
-            
-            const min = new THREE.Vector3(
-                worldPosition.x - halfWidth + data.offset.x,
-                worldPosition.y - halfHeight + data.offset.y,
-                worldPosition.z - halfDepth + data.offset.z
-            );
-            
-            const max = new THREE.Vector3(
-                worldPosition.x + halfWidth + data.offset.x,
-                worldPosition.y + halfHeight + data.offset.y,
-                worldPosition.z + halfDepth + data.offset.z
-            );
-            
-            this.collisionArea.set(min, max);
-        }
-    },
-    
-    tick: function() {
-        this.updateCollisionBounds();
-    },
-    
-    checkCollision: function(position, radius = 0.5) {
-        const playerBox = new THREE.Box3(
-            new THREE.Vector3(position.x - radius, position.y - 1, position.z - radius),
-            new THREE.Vector3(position.x + radius, position.y + 2, position.z + radius)
-        );
-        
-        return playerBox.intersectsBox(this.collisionArea);
-    }
-});
+    });
+}
 
 // Enhanced Movement Controls with Improved Collision Detection
+// Check if component already exists before registering
 if (!AFRAME.components['movement-controls']) {
     AFRAME.registerComponent('movement-controls', {
         schema: {
@@ -531,310 +534,23 @@ if (!AFRAME.components['movement-controls']) {
 }
 
 // Simple Physics System (optional, for more advanced physics)
-AFRAME.registerSystem('simple-physics', {
-    init: function() {
-        this.colliders = [];
-        this.dynamicBodies = [];
-    },
-    
-    registerCollider: function(component) {
-        this.colliders.push(component);
-    },
-    
-    unregisterCollider: function(component) {
-        const index = this.colliders.indexOf(component);
-        if (index > -1) {
-            this.colliders.splice(index, 1);
-
-
-        }
-    }
-});
-
-// Collision Body Component for simple collision detection
-AFRAME.registerComponent('collision-body', {
-    schema: {
-        type: { type: 'string', default: 'box' },
-        radius: { type: 'number', default: 0.5 },
-        height: { type: 'number', default: 1 },
-        width: { type: 'number', default: 1 },
-        depth: { type: 'number', default: 1 },
-        offset: { type: 'vec3', default: { x: 0, y: 0, z: 0 } }
-    },
-    
-    init: function() {
-        this.collisionArea = new THREE.Box3();
-        this.helper = null;
-        
-        // Create visual helper for debugging
-        if (this.el.sceneEl.hasAttribute('debug')) {
-            this.createDebugHelper();
-        }
-    },
-    
-    createDebugHelper: function() {
-        const data = this.data;
-        if (data.type === 'cylinder') {
-            this.helper = document.createElement('a-cylinder');
-            this.helper.setAttribute('radius', data.radius);
-            this.helper.setAttribute('height', data.height);
-            this.helper.setAttribute('position', data.offset);
-            this.helper.setAttribute('material', 'color: red; opacity: 0.3; transparent: true');
-            this.helper.setAttribute('visible', 'true');
-            this.el.appendChild(this.helper);
-        } else if (data.type === 'box') {
-            this.helper = document.createElement('a-box');
-            this.helper.setAttribute('width', data.width);
-            this.helper.setAttribute('height', data.height);
-            this.helper.setAttribute('depth', data.depth);
-            this.helper.setAttribute('position', data.offset);
-            this.helper.setAttribute('material', 'color: red; opacity: 0.3; transparent: true');
-            this.helper.setAttribute('visible', 'true');
-            this.el.appendChild(this.helper);
-        }
-    },
-    
-    update: function() {
-        this.updateCollisionBounds();
-    },
-    
-    updateCollisionBounds: function() {
-        const worldPosition = new THREE.Vector3();
-        const worldScale = new THREE.Vector3();
-        
-        this.el.object3D.getWorldPosition(worldPosition);
-        this.el.object3D.getWorldScale(worldScale);
-        
-        const data = this.data;
-        
-        if (data.type === 'cylinder') {
-            const radius = data.radius * Math.max(worldScale.x, worldScale.z);
-            const height = data.height * worldScale.y;
-            
-            const min = new THREE.Vector3(
-                worldPosition.x - radius + data.offset.x,
-                worldPosition.y + data.offset.y - height/2,
-                worldPosition.z - radius + data.offset.z
-            );
-            
-            const max = new THREE.Vector3(
-                worldPosition.x + radius + data.offset.x,
-                worldPosition.y + data.offset.y + height/2,
-                worldPosition.z + radius + data.offset.z
-            );
-            
-            this.collisionArea.set(min, max);
-        } else {
-            const halfWidth = (data.width * worldScale.x) / 2;
-            const halfHeight = (data.height * worldScale.y) / 2;
-            const halfDepth = (data.depth * worldScale.z) / 2;
-            
-            const min = new THREE.Vector3(
-                worldPosition.x - halfWidth + data.offset.x,
-                worldPosition.y - halfHeight + data.offset.y,
-                worldPosition.z - halfDepth + data.offset.z
-            );
-            
-            const max = new THREE.Vector3(
-                worldPosition.x + halfWidth + data.offset.x,
-                worldPosition.y + halfHeight + data.offset.y,
-                worldPosition.z + halfDepth + data.offset.z
-            );
-            
-            this.collisionArea.set(min, max);
-        }
-    },
-    
-    tick: function() {
-        this.updateCollisionBounds();
-    },
-    
-    checkCollision: function(position, radius = 0.5) {
-        const playerBox = new THREE.Box3(
-            new THREE.Vector3(position.x - radius, position.y - 1, position.z - radius),
-            new THREE.Vector3(position.x + radius, position.y + 2, position.z + radius)
-        );
-        
-        return playerBox.intersectsBox(this.collisionArea);
-    }
-});
-
-// Enhanced Movement Controls with Improved Collision Detection
-if (!AFRAME.components['movement-controls']) {
-    AFRAME.registerComponent('movement-controls', {
-        schema: {
-            speed: { type: 'number', default: 0.1 },
-            collisionRadius: { type: 'number', default: 0.5 },
-            debug: { type: 'boolean', default: false }
-        },
-        
+// Check if system already exists before registering
+if (!AFRAME.systems['simple-physics']) {
+    AFRAME.registerSystem('simple-physics', {
         init: function() {
-            // Check if THREE is available
-            if (typeof THREE === 'undefined') {
-                console.error('THREE is not available for movement-controls');
-                return;
-            }
-            
-            this.direction = new THREE.Vector3();
-            this.velocity = new THREE.Vector3();
-            this.lastPosition = new THREE.Vector3();
-            this.collisionBodies = [];
-            
-            // Get initial position
-            this.el.object3D.getWorldPosition(this.lastPosition);
-            
-            // Find collision bodies
-            this.findCollisionBodies();
-            
-            // Listen for scene-loaded to find trees that might be added later
-            this.el.sceneEl.addEventListener('loaded', () => {
-                setTimeout(() => this.findCollisionBodies(), 1000);
-            });
-            
-            // Debug visualization
-            if (this.data.debug) {
-                this.createDebugSphere();
-            }
+            this.colliders = [];
+            this.dynamicBodies = [];
         },
         
-        findCollisionBodies: function() {
-            this.collisionBodies = [];
-            const scene = this.el.sceneEl;
-            if (!scene) return;
-            
-            // Find all collision bodies
-            const collidables = scene.querySelectorAll('[collision-body]');
-            collidables.forEach(body => {
-                const component = body.components['collision-body'];
-                if (component) {
-                    this.collisionBodies.push(component);
-                }
-            });
-            
-            console.log(`Found ${this.collisionBodies.length} collision bodies`);
+        registerCollider: function(component) {
+            this.colliders.push(component);
         },
         
-        createDebugSphere: function() {
-            const sphere = document.createElement('a-sphere');
-            sphere.setAttribute('radius', this.data.collisionRadius);
-            sphere.setAttribute('position', '0 1 0');
-            sphere.setAttribute('material', 'color: blue; opacity: 0.3; transparent: true');
-            sphere.setAttribute('visible', 'true');
-            this.el.appendChild(sphere);
-        },
-        
-        tick: function() {
-            if (typeof THREE === 'undefined') return;
-            
-            const data = this.data;
-            const currentPosition = new THREE.Vector3();
-            this.el.object3D.getWorldPosition(currentPosition);
-            
-            // Calculate movement vector
-            this.velocity.set(0, 0, 0);
-            
-            if (this.isKeyPressed('KeyW') || this.isKeyPressed('ArrowUp')) {
-                this.velocity.z -= data.speed;
+        unregisterCollider: function(component) {
+            const index = this.colliders.indexOf(component);
+            if (index > -1) {
+                this.colliders.splice(index, 1);
             }
-            if (this.isKeyPressed('KeyS') || this.isKeyPressed('ArrowDown')) {
-                this.velocity.z += data.speed;
-            }
-            if (this.isKeyPressed('KeyA') || this.isKeyPressed('ArrowLeft')) {
-                this.velocity.x -= data.speed;
-            }
-            if (this.isKeyPressed('KeyD') || this.isKeyPressed('ArrowRight')) {
-                this.velocity.x += data.speed;
-            }
-            
-            // Apply movement with collision detection
-            if (this.velocity.lengthSq() > 0) {
-                this.applyMovementWithCollision(currentPosition, this.velocity);
-            }
-            
-            // Update last position
-            this.lastPosition.copy(currentPosition);
-        },
-        
-        applyMovementWithCollision: function(currentPos, velocity) {
-            // Calculate proposed position
-            const proposedPos = currentPos.clone().add(velocity);
-            
-            // Check for collisions at proposed position
-            let collisionDetected = false;
-            
-            for (const body of this.collisionBodies) {
-                if (body.checkCollision(proposedPos, this.data.collisionRadius)) {
-                    collisionDetected = true;
-                    
-                    // Calculate direction from collision body to player
-                    const bodyPos = new THREE.Vector3();
-                    body.el.object3D.getWorldPosition(bodyPos);
-                    
-                    // Calculate push-away vector
-                    const pushDirection = proposedPos.clone().sub(bodyPos);
-                    pushDirection.y = 0; // Keep on ground plane
-                    
-                    if (pushDirection.length() > 0.01) {
-                        pushDirection.normalize();
-                        
-                        // Try to slide along the collision
-                        const slideVelocity = velocity.clone();
-                        const dot = slideVelocity.dot(pushDirection);
-                        
-                        // Remove component going into the collision
-                        slideVelocity.sub(pushDirection.multiplyScalar(dot));
-                        
-                        // Try the slid movement
-                        const slidePos = currentPos.clone().add(slideVelocity.multiplyScalar(0.5));
-                        
-                        // Check if slid position is valid
-                        let slideValid = true;
-                        for (const otherBody of this.collisionBodies) {
-                            if (otherBody !== body && otherBody.checkCollision(slidePos, this.data.collisionRadius)) {
-                                slideValid = false;
-                                break;
-                            }
-                        }
-                        
-                        if (slideValid) {
-                            this.el.object3D.position.add(slideVelocity);
-                            return;
-                        }
-                    }
-                    break;
-                }
-            }
-            
-            // If no collision, move to proposed position
-            if (!collisionDetected) {
-                this.el.object3D.position.add(velocity);
-            } else {
-                // If collision and can't slide, don't move
-                // You could add a slight vibration or sound effect here
-            }
-        },
-        
-        isKeyPressed: function(code) {
-            return AFRAME.utils.keyboard.isKeyPressed(code);
         }
     });
 }
-
-// Simple Physics System (optional, for more advanced physics)
-AFRAME.registerSystem('simple-physics', {
-    init: function() {
-        this.colliders = [];
-        this.dynamicBodies = [];
-    },
-    
-    registerCollider: function(component) {
-        this.colliders.push(component);
-    },
-    
-    unregisterCollider: function(component) {
-        const index = this.colliders.indexOf(component);
-        if (index > -1) {
-            this.colliders.splice(index, 1);
-        }
-    }
-});
