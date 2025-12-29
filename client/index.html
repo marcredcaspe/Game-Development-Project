@@ -79,7 +79,7 @@
                 roamRadius: 55; 
                 detectionRange: 6; 
                 chaseSpeed: 3.5;
-                wolfId: 1
+                id: 1
             "
             shadow="cast: true"
         ></a-entity>
@@ -94,7 +94,7 @@
                 roamRadius: 50; 
                 detectionRange: 7; 
                 chaseSpeed: 3.2;
-                wolfId: 2
+                id: 2
             "
             shadow="cast: true"
         ></a-entity>
@@ -109,7 +109,7 @@
                 roamRadius: 45; 
                 detectionRange: 5; 
                 chaseSpeed: 3.8;
-                wolfId: 3
+                id: 3
             "
             shadow="cast: true"
         ></a-entity>
@@ -143,181 +143,186 @@
     </a-scene>
 
     <!-- Load tree generator first -->
-    <script type="module" src="./src/components/tree-generator.js"></script>
+   <script type="module" src="./src/components/tree-generator.js"></script>
     
     <!-- Custom movement component with tree collision -->
     <script>
-        // Simple Movement Component with absolute directions and tree collision
-        AFRAME.registerComponent('simple-movement', {
-            schema: {
-                speed: { type: 'number', default: 0.15 },
-                collisionDistance: { type: 'number', default: 1.0 }
-            },
-            
-            init: function() {
-                this.velocity = new THREE.Vector3();
+        // Check if component already exists before registering
+        if (!AFRAME.components['simple-movement']) {
+            // Simple Movement Component with absolute directions and tree collision
+            AFRAME.registerComponent('simple-movement', {
+                schema: {
+                    speed: { type: 'number', default: 0.15 },
+                    collisionDistance: { type: 'number', default: 1.0 }
+                },
                 
-                // Bind keyboard events
-                this.onKeyDown = this.onKeyDown.bind(this);
-                this.onKeyUp = this.onKeyUp.bind(this);
-                
-                window.addEventListener('keydown', this.onKeyDown);
-                window.addEventListener('keyup', this.onKeyUp);
-                
-                // Track pressed keys
-                this.keys = {
-                    w: false,
-                    a: false,
-                    s: false,
-                    d: false
-                };
-                
-                // Store tree positions for collision
-                this.treePositions = [];
-                this.findTrees();
-                
-                // Listen for trees being added
-                this.el.sceneEl.addEventListener('trees-generated', () => {
-                    setTimeout(() => this.findTrees(), 100);
-                });
-            },
-            
-            findTrees: function() {
-                this.treePositions = [];
-                const scene = this.el.sceneEl;
-                if (!scene) return;
-                
-                // Find all trees
-                const treeGenerator = scene.querySelector('#trees');
-                if (!treeGenerator) return;
-                
-                const trees = treeGenerator.querySelectorAll('a-entity');
-                
-                trees.forEach(tree => {
-                    // Check if it's a tree entity (has a trunk cylinder)
-                    const trunk = tree.querySelector('a-cylinder');
-                    if (trunk) {
-                        const position = tree.getAttribute('position');
-                        let radius = 0.5; // Default
-                        
-                        if (trunk) {
-                            const trunkRadius = trunk.getAttribute('radius');
-                            const scale = tree.getAttribute('scale');
-                            if (trunkRadius && scale) {
-                                radius = trunkRadius * Math.max(scale.x, scale.z) * 1.5;
-                            }
-                        }
-                        
-                        this.treePositions.push({
-                            x: position.x,
-                            z: position.z,
-                            radius: radius
-                        });
+                init: function() {
+                    // Ensure THREE is available
+                    if (typeof THREE === 'undefined') {
+                        console.error('THREE is not defined!');
+                        return;
                     }
-                });
-                
-                console.log(`Found ${this.treePositions.length} trees for collision`);
-            },
-            
-            onKeyDown: function(event) {
-                switch(event.code) {
-                    case 'KeyW':
-                    case 'ArrowUp':
-                        this.keys.w = true;
-                        break;
-                    case 'KeyS':
-                    case 'ArrowDown':
-                        this.keys.s = true;
-                        break;
-                    case 'KeyA':
-                    case 'ArrowLeft':
-                        this.keys.a = true;
-                        break;
-                    case 'KeyD':
-                    case 'ArrowRight':
-                        this.keys.d = true;
-                        break;
-                }
-            },
-            
-            onKeyUp: function(event) {
-                switch(event.code) {
-                    case 'KeyW':
-                    case 'ArrowUp':
-                        this.keys.w = false;
-                        break;
-                    case 'KeyS':
-                    case 'ArrowDown':
-                        this.keys.s = false;
-                        break;
-                    case 'KeyA':
-                    case 'ArrowLeft':
-                        this.keys.a = false;
-                        break;
-                    case 'KeyD':
-                    case 'ArrowRight':
-                        this.keys.d = false;
-                        break;
-                }
-            },
-            
-            checkTreeCollision: function(newX, newZ) {
-                const playerRadius = 0.5;
-                
-                for (const tree of this.treePositions) {
-                    const dx = newX - tree.x;
-                    const dz = newZ - tree.z;
-                    const distance = Math.sqrt(dx * dx + dz * dz);
                     
-                    if (distance < playerRadius + tree.radius) {
-                        return true; // Collision detected
+                    // Bind keyboard events
+                    this.onKeyDown = this.onKeyDown.bind(this);
+                    this.onKeyUp = this.onKeyUp.bind(this);
+                    
+                    window.addEventListener('keydown', this.onKeyDown);
+                    window.addEventListener('keyup', this.onKeyUp);
+                    
+                    // Track pressed keys
+                    this.keys = {
+                        w: false,
+                        a: false,
+                        s: false,
+                        d: false
+                    };
+                    
+                    // Store tree positions for collision
+                    this.treePositions = [];
+                    this.findTrees();
+                    
+                    // Listen for trees being added
+                    this.el.sceneEl.addEventListener('trees-generated', () => {
+                        setTimeout(() => this.findTrees(), 100);
+                    });
+                },
+                
+                findTrees: function() {
+                    this.treePositions = [];
+                    const scene = this.el.sceneEl;
+                    if (!scene) return;
+                    
+                    // Find all trees
+                    const treeGenerator = scene.querySelector('#trees');
+                    if (!treeGenerator) return;
+                    
+                    const trees = treeGenerator.querySelectorAll('a-entity');
+                    
+                    trees.forEach(tree => {
+                        // Check if it's a tree entity (has a trunk cylinder)
+                        const trunk = tree.querySelector('a-cylinder');
+                        if (trunk) {
+                            const position = tree.getAttribute('position');
+                            let radius = 0.5; // Default
+                            
+                            if (trunk) {
+                                const trunkRadius = trunk.getAttribute('radius');
+                                const scale = tree.getAttribute('scale');
+                                if (trunkRadius && scale) {
+                                    radius = trunkRadius * Math.max(scale.x, scale.z) * 1.5;
+                                }
+                            }
+                            
+                            this.treePositions.push({
+                                x: position.x,
+                                z: position.z,
+                                radius: radius
+                            });
+                        }
+                    });
+                    
+                    console.log(`Found ${this.treePositions.length} trees for collision`);
+                },
+                
+                onKeyDown: function(event) {
+                    switch(event.code) {
+                        case 'KeyW':
+                        case 'ArrowUp':
+                            this.keys.w = true;
+                            break;
+                        case 'KeyS':
+                        case 'ArrowDown':
+                            this.keys.s = true;
+                            break;
+                        case 'KeyA':
+                        case 'ArrowLeft':
+                            this.keys.a = true;
+                            break;
+                        case 'KeyD':
+                        case 'ArrowRight':
+                            this.keys.d = true;
+                            break;
                     }
-                }
-                return false; // No collision
-            },
-            
-            tick: function() {
-                if (!this.el.sceneEl.isPlaying) return;
+                },
                 
-                const speed = this.data.speed;
-                const position = this.el.getAttribute('position');
-                const camera = this.el.querySelector('[camera]');
+                onKeyUp: function(event) {
+                    switch(event.code) {
+                        case 'KeyW':
+                        case 'ArrowUp':
+                            this.keys.w = false;
+                            break;
+                        case 'KeyS':
+                        case 'ArrowDown':
+                            this.keys.s = false;
+                            break;
+                        case 'KeyA':
+                        case 'ArrowLeft':
+                            this.keys.a = false;
+                            break;
+                        case 'KeyD':
+                        case 'ArrowRight':
+                            this.keys.d = false;
+                            break;
+                    }
+                },
                 
-                if (!camera) return;
+                checkTreeCollision: function(newX, newZ) {
+                    const playerRadius = 0.5;
+                    
+                    for (const tree of this.treePositions) {
+                        const dx = newX - tree.x;
+                        const dz = newZ - tree.z;
+                        const distance = Math.sqrt(dx * dx + dz * dz);
+                        
+                        if (distance < playerRadius + tree.radius) {
+                            return true; // Collision detected
+                        }
+                    }
+                    return false; // No collision
+                },
                 
-                // Get camera's world direction
-                const cameraWorldDirection = new THREE.Vector3();
-                camera.object3D.getWorldDirection(cameraWorldDirection);
-                cameraWorldDirection.y = 0;
-                cameraWorldDirection.normalize();
-                
-                // Calculate movement vectors
-                const forward = cameraWorldDirection.clone();
-                const right = new THREE.Vector3();
-                right.crossVectors(forward, new THREE.Vector3(0, 1, 0)).normalize();
-                const backward = forward.clone().negate();
-                const left = right.clone().negate();
-                
-                // Reset velocity
-                this.velocity.set(0, 0, 0);
-
-                // Direction input
-                if (this.keys.w) this.velocity.add(backward);
-                if (this.keys.s) this.velocity.add(forward);
-                if (this.keys.a) this.velocity.add(right);
-                if (this.keys.d) this.velocity.add(left);
-
-                // Normalize & apply speed
-                if (this.velocity.lengthSq() > 0) {
-                    this.velocity.normalize().multiplyScalar(speed);
-
+                tick: function() {
+                    if (!this.el.sceneEl.isPlaying) return;
+                    
+                    const speed = this.data.speed;
+                    const position = this.el.getAttribute('position');
+                    const camera = this.el.querySelector('[camera]');
+                    
+                    if (!camera) return;
+                    
+                    // Get camera rotation (simpler approach)
+                    const cameraRotation = camera.getAttribute('rotation');
+                    const yaw = THREE.MathUtils.degToRad(cameraRotation.y);
+                    
+                    // Calculate movement direction based on keys
+                    let moveX = 0;
+                    let moveZ = 0;
+                    
+                    if (this.keys.w) {
+                        moveZ -= Math.cos(yaw) * speed;
+                        moveX -= Math.sin(yaw) * speed;
+                    }
+                    if (this.keys.s) {
+                        moveZ += Math.cos(yaw) * speed;
+                        moveX += Math.sin(yaw) * speed;
+                    }
+                    if (this.keys.a) {
+                        moveX -= Math.cos(yaw) * speed;
+                        moveZ += Math.sin(yaw) * speed;
+                    }
+                    if (this.keys.d) {
+                        moveX += Math.cos(yaw) * speed;
+                        moveZ -= Math.sin(yaw) * speed;
+                    }
+                    
                     const newPosition = {
-                        x: position.x + this.velocity.x,
+                        x: position.x + moveX,
                         y: position.y,
-                        z: position.z + this.velocity.z
+                        z: position.z + moveZ
                     };
 
-                    // Check tree collision first
+                    // Check tree collision
                     if (!this.checkTreeCollision(newPosition.x, newPosition.z)) {
                         // Boundary check
                         const boundaryChecker = this.el.components['boundary-checker'];
@@ -328,7 +333,7 @@
                     } else {
                         // Try sliding - check X movement only
                         const xOnlyPosition = {
-                            x: position.x + this.velocity.x,
+                            x: position.x + moveX,
                             y: position.y,
                             z: position.z
                         };
@@ -344,7 +349,7 @@
                             const zOnlyPosition = {
                                 x: position.x,
                                 y: position.y,
-                                z: position.z + this.velocity.z
+                                z: position.z + moveZ
                             };
                             
                             if (!this.checkTreeCollision(zOnlyPosition.x, zOnlyPosition.z)) {
@@ -356,21 +361,24 @@
                             }
                         }
                     }
+                },
+                
+                remove: function() {
+                    window.removeEventListener('keydown', this.onKeyDown);
+                    window.removeEventListener('keyup', this.onKeyUp);
                 }
-            },
-            
-            remove: function() {
-                window.removeEventListener('keydown', this.onKeyDown);
-                window.removeEventListener('keyup', this.onKeyUp);
-            }
-        });
+            });
+        }
 
-        // Simple tree collision checker component
-        AFRAME.registerComponent('tree-collision-checker', {
-            init: function() {
-                // This component is just a tag to identify the player for collision
-            }
-        });
+        // Check if component already exists before registering
+        if (!AFRAME.components['tree-collision-checker']) {
+            // Simple tree collision checker component
+            AFRAME.registerComponent('tree-collision-checker', {
+                init: function() {
+                    // This component is just a tag to identify the player for collision
+                }
+            });
+        }
     </script>
     
     <script src="./src/main.js" type="module"></script>
