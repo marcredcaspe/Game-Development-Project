@@ -1,4 +1,4 @@
-# 🏕️ Back to Camp - Survival Game
+# 🏕️ Campsite - Survival Game
 
 ## 📖 Project Story
 
@@ -82,6 +82,11 @@ Lost in the wilderness at nightfall, a lone adventurer must navigate through dan
    MONGO_URI=mongodb+srv://<name>:<password>@cluster0.hq6emk5.mongodb.net/gameDB
    JWT_SECRET=myjwtsecret
    FRONTEND_URL=http://localhost:5173
+   ```
+
+   Create a `.env` file in the `client` directory and replace the name and password that was included in the submitted deliverables:
+   ```env
+   VITE_API_URL=http://localhost:5000/api
    ```
 
 ### Running the Application
